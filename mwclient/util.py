@@ -18,7 +18,7 @@ def parse_timestamp(t):
 
 def read_in_chunks(stream, chunk_size):
     while True:
-        data = stream.read(chunk_size)
-        if not data:
+        if data := stream.read(chunk_size):
+            yield io.BytesIO(data)
+        else:
             break
-        yield io.BytesIO(data)

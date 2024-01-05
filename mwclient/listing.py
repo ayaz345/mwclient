@@ -28,7 +28,7 @@ class List(object):
 
         if limit is None:
             limit = site.api_limit
-        self.args[self.prefix + 'limit'] = text_type(limit)
+        self.args[f'{self.prefix}limit'] = text_type(limit)
 
         self.count = 0
         self.max_items = max_items
@@ -68,9 +68,7 @@ class List(object):
             return item
         if type(self.return_values) is tuple:
             return tuple((item[i] for i in self.return_values))
-        if self.return_values is not None:
-            return item[self.return_values]
-        return item
+        return item[self.return_values] if self.return_values is not None else item
 
     def next(self, *args, **kwargs):
         """ For Python 2.x support """
@@ -126,11 +124,7 @@ class List(object):
             self._iter = six.itervalues(data['query'][self.result_member])
 
     def __repr__(self):
-        return "<%s object '%s' for %s>" % (
-            self.__class__.__name__,
-            self.list_name,
-            self.site
-        )
+        return f"<{self.__class__.__name__} object '{self.list_name}' for {self.site}>"
 
     @staticmethod
     def generate_kwargs(_prefix, *args, **kwargs):
@@ -169,8 +163,8 @@ class GeneratorList(List):
         super(GeneratorList, self).__init__(site, list_name, prefix,
                                             *args, **kwargs)
 
-        self.args['g' + self.prefix + 'limit'] = self.args[self.prefix + 'limit']
-        del self.args[self.prefix + 'limit']
+        self.args[f'g{self.prefix}limit'] = self.args[f'{self.prefix}limit']
+        del self.args[f'{self.prefix}limit']
         self.generator = 'generator'
 
         self.args['prop'] = 'info|imageinfo'
@@ -199,18 +193,13 @@ class Category(mwclient.page.Page, GeneratorList):
 
     def __init__(self, site, name, info=None, namespace=None):
         mwclient.page.Page.__init__(self, site, name, info)
-        kwargs = {}
-        kwargs['gcmtitle'] = self.name
+        kwargs = {'gcmtitle': self.name}
         if namespace:
             kwargs['gcmnamespace'] = namespace
         GeneratorList.__init__(self, site, 'categorymembers', 'cm', **kwargs)
 
     def __repr__(self):
-        return "<%s object '%s' for %s>" % (
-            self.__class__.__name__,
-            self.name.encode('utf-8'),
-            self.site
-        )
+        return f"<{self.__class__.__name__} object '{self.name.encode('utf-8')}' for {self.site}>"
 
     def members(self, prop='ids|title', namespace=None, sort='sortkey',
                 dir='asc', start=None, end=None, generator=True):
@@ -289,11 +278,11 @@ class PageList(GeneratorList):
         for ns in self.site.namespaces:
             if ns == 0:
                 continue
-            namespace = u'%s:' % self.site.namespaces[ns].replace(' ', '_')
+            namespace = f"{self.site.namespaces[ns].replace(' ', '_')}:"
             if name.startswith(namespace):
                 return ns
             elif ns in self.site.default_namespaces:
-                namespace = u'%s:' % self.site.default_namespaces[ns].replace(' ', '_')
+                namespace = f"{self.site.default_namespaces[ns].replace(' ', '_')}:"
                 if name.startswith(namespace):
                     return ns
         return 0

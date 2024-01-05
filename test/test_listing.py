@@ -73,7 +73,7 @@ class TestList(unittest.TestCase):
 
         lst = List(mock_site, 'allpages', 'ap', limit=2)
         self.setupDummyResponses(mock_site, 'allpages')
-        vals = [x for x in lst]
+        vals = list(lst)
 
         assert len(vals) == 3
         assert type(vals[0]) == dict
@@ -84,7 +84,7 @@ class TestList(unittest.TestCase):
 
         lst = List(mock_site, 'allpages', 'ap', limit=2, return_values='title')
         self.setupDummyResponses(mock_site, 'allpages')
-        vals = [x for x in lst]
+        vals = list(lst)
 
         assert len(vals) == 3
         assert type(vals[0]) == str
@@ -96,7 +96,7 @@ class TestList(unittest.TestCase):
         lst = List(mock_site, 'allpages', 'ap', limit=2,
                    return_values=('title', 'ns'))
         self.setupDummyResponses(mock_site, 'allpages')
-        vals = [x for x in lst]
+        vals = list(lst)
 
         assert len(vals) == 3
         assert type(vals[0]) == tuple
@@ -107,7 +107,7 @@ class TestList(unittest.TestCase):
 
         lst = GeneratorList(mock_site, 'pages', 'p')
         self.setupDummyResponses(mock_site, 'pages', ns=[0, 6, 14])
-        vals = [x for x in lst]
+        vals = list(lst)
 
         assert len(vals) == 3
         assert type(vals[0]) == mwclient.page.Page

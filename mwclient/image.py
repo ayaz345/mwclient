@@ -39,7 +39,7 @@ class Image(mwclient.page.Page):
             prefix, title=self.name, namespace=namespace, filterredir=filterredir
         ))
         if redirect:
-            kwargs['%sredirect' % prefix] = '1'
+            kwargs[f'{prefix}redirect'] = '1'
         return mwclient.listing.List.get_list(generator)(
             self.site, 'imageusage', 'iu', limit=limit, return_values='title', **kwargs
         )
@@ -67,16 +67,11 @@ class Image(mwclient.page.Page):
             destination (file object): Destination file
         """
         url = self.imageinfo['url']
-        if destination is not None:
-            res = self.site.connection.get(url, stream=True)
-            for chunk in res.iter_content(1024):
-                destination.write(chunk)
-        else:
+        if destination is None:
             return self.site.connection.get(url).content
+        res = self.site.connection.get(url, stream=True)
+        for chunk in res.iter_content(1024):
+            destination.write(chunk)
 
     def __repr__(self):
-        return "<%s object '%s' for %s>" % (
-            self.__class__.__name__,
-            self.name.encode('utf-8'),
-            self.site
-        )
+        return f"<{self.__class__.__name__} object '{self.name.encode('utf-8')}' for {self.site}>"

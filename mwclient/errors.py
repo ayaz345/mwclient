@@ -42,9 +42,7 @@ class ProtectedPageError(EditError, InsufficientPermission):
         self.info = info
 
     def __str__(self):
-        if self.info is not None:
-            return self.info
-        return 'You do not have the "edit" right.'
+        return 'You do not have the "edit" right.' if self.info is None else self.info
 
 
 class FileExists(EditError):
