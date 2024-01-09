@@ -28,7 +28,7 @@ site.compress = False
 print('Running configured site', sys.argv[1])
 print('Site has writeapi:', getattr(site, 'writeapi', False))
 
-page = site.Pages[prefix + '/text1']
+page = site.Pages[f'{prefix}/text1']
 
 print('Editing page1')
 
@@ -46,10 +46,20 @@ print('Links:', list(page.links(generator=False)))
 print('External links:', list(page.extlinks()))
 
 print('Uploading image')
-site.upload(open('test-image.png', 'rb'), prefix + '-test-image.png', 'desc', ignore=True)
+site.upload(
+    open('test-image.png', 'rb'),
+    f'{prefix}-test-image.png',
+    'desc',
+    ignore=True,
+)
 print('Uploading image for the second time')
-site.upload(open('test-image.png', 'rb'), prefix + '-test-image.png', 'desc', ignore=True)
-image = site.Images[prefix + '-test-image.png']
+site.upload(
+    open('test-image.png', 'rb'),
+    f'{prefix}-test-image.png',
+    'desc',
+    ignore=True,
+)
+image = site.Images[f'{prefix}-test-image.png']
 print('Imageinfo:', image.imageinfo)
 history = list(image.imagehistory())
 print('History:', history)

@@ -73,24 +73,15 @@ class Page(object):
             for page in info['query']['redirects']:
                 if page['from'] == self.name:
                     return Page(self.site, page['to'])
-            return None
-        else:
-            return None
+        return None
 
     def resolve_redirect(self):
         """ Get the redirect target page, or the current page if its not a redirect."""
         target_page = self.redirects_to()
-        if target_page is None:
-            return self
-        else:
-            return target_page
+        return self if target_page is None else target_page
 
     def __repr__(self):
-        return "<%s object '%s' for %s>" % (
-            self.__class__.__name__,
-            self.name.encode('utf-8'),
-            self.site
-        )
+        return f"<{self.__class__.__name__} object '{self.name.encode('utf-8')}' for {self.site}>"
 
     def __unicode__(self):
         return self.name
@@ -159,10 +150,7 @@ class Page(object):
                               slots=slot)
         try:
             rev = next(revs)
-            if 'slots' in rev:
-                text = rev['slots'][slot]['*']
-            else:
-                text = rev['*']
+            text = rev['slots'][slot]['*'] if 'slots' in rev else rev['*']
             self.last_rev_time = rev['timestamp']
         except StopIteration:
             text = u''
@@ -365,8 +353,8 @@ class Page(object):
             prefix, namespace=namespace, filterredir=filterredir,
         ))
         if redirect:
-            kwargs['%sredirect' % prefix] = '1'
-        kwargs[prefix + 'title'] = self.name
+            kwargs[f'{prefix}redirect'] = '1'
+        kwargs[f'{prefix}title'] = self.name
 
         return mwclient.listing.List.get_list(generator)(
             self.site, 'backlinks', 'bl', limit=limit, return_values='title',
@@ -419,7 +407,7 @@ class Page(object):
         prefix = mwclient.listing.List.get_prefix('ei', generator)
         kwargs = dict(mwclient.listing.List.generate_kwargs(prefix, namespace=namespace,
                                                             filterredir=filterredir))
-        kwargs[prefix + 'title'] = self.name
+        kwargs[f'{prefix}title'] = self.name
 
         return mwclient.listing.List.get_list(generator)(
             self.site, 'embeddedin', 'ei', limit=limit, return_values='title',

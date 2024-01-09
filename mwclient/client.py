@@ -20,8 +20,7 @@ __version__ = '0.10.1'
 
 log = logging.getLogger(__name__)
 
-USER_AGENT = 'mwclient/{} ({})'.format(__version__,
-                                       'https://github.com/mwclient/mwclient')
+USER_AGENT = f'mwclient/{__version__} (https://github.com/mwclient/mwclient)'
 
 
 class Site(object):
@@ -139,10 +138,7 @@ class Site(object):
                 self.connection.cert = client_certificate
 
             # Set User-Agent header field
-            if clients_useragent:
-                ua = clients_useragent + ' ' + USER_AGENT
-            else:
-                ua = USER_AGENT
+            ua = f'{clients_useragent} {USER_AGENT}' if clients_useragent else USER_AGENT
             self.connection.headers['User-Agent'] = ua
 
             if custom_headers:
@@ -247,10 +243,7 @@ class Site(object):
                 if s[i] < '0' or s[i] > '9':
                     break
                 i += 1
-            if s[i:]:
-                return (int(s[:i]), s[i:], )
-            else:
-                return (int(s[:i]), )
+            return (int(s[:i]), s[i:]) if s[i:] else (int(s[:i]), )
 
         version_tuple = sum((split_num(s) for s in version), ())
 
@@ -269,7 +262,7 @@ class Site(object):
     }
 
     def __repr__(self):
-        return "<%s object '%s%s'>" % (self.__class__.__name__, self.host, self.path)
+        return f"<{self.__class__.__name__} object '{self.host}{self.path}'>"
 
     def get(self, action, *args, **kwargs):
         """Perform a generic API call using GET.
@@ -483,9 +476,8 @@ class Site(object):
                 stream = self.connection.request(http_method, url, **args)
                 if stream.headers.get('x-database-lag'):
                     wait_time = int(stream.headers.get('retry-after'))
-                    log.warning('Database lag exceeds max lag. '
-                                'Waiting for {} seconds'.format(wait_time))
-                    # fall through to the sleep
+                    log.warning(f'Database lag exceeds max lag. Waiting for {wait_time} seconds')
+                                # fall through to the sleep
                 elif stream.status_code == 200:
                     return stream.text
                 elif stream.status_code < 500 or stream.status_code > 599:
@@ -619,7 +611,7 @@ class Site(object):
             if raise_error is None:
                 return
             # FIXME: Replace this with a specific error
-            raise RuntimeError('Site %s has not yet been initialized' % repr(self))
+            raise RuntimeError(f'Site {repr(self)} has not yet been initialized')
 
         if revision is None:
             if self.version[:2] >= (major, minor):
@@ -802,7 +794,7 @@ class Site(object):
 
             if 'logincontinue' not in kwargs and 'loginreturnurl' not in kwargs:
                 # should be great if API didn't require this...
-                kwargs['loginreturnurl'] = '%s://%s' % (self.scheme, self.host)
+                kwargs['loginreturnurl'] = f'{self.scheme}://{self.host}'
 
             while True:
                 login = self.post('clientlogin', **kwargs)
@@ -832,8 +824,6 @@ class Site(object):
             errors.APIError: A token of the given type could not be retrieved.
         """
         if self.version is None or self.version[:2] >= (1, 24):
-            # The 'csrf' (cross-site request forgery) token introduced in 1.24 replaces
-            # the majority of older tokens, like edittoken and movetoken.
             if type not in {'watch', 'patrol', 'rollback', 'userrights', 'login'}:
                 type = 'csrf'
 
@@ -853,7 +843,7 @@ class Site(object):
                 # Note that for read protected wikis, we don't know the version when
                 # fetching the login token. If it's < 1.27, the request below will
                 # raise a KeyError that we should catch.
-                self.tokens[type] = info['query']['tokens']['%stoken' % type]
+                self.tokens[type] = info['query']['tokens'][f'{type}token']
 
             else:
                 if title is None:
@@ -863,7 +853,7 @@ class Site(object):
                                  prop='info', intoken=type)
                 for i in six.itervalues(info['query']['pages']):
                     if i['title'] == title:
-                        self.tokens[type] = i['%stoken' % type]
+                        self.tokens[type] = i[f'{type}token']
 
         return self.tokens[type]
 
@@ -958,16 +948,7 @@ class Site(object):
             predata['filekey'] = filekey
 
         postdata = predata
-        files = None
-        if file is not None:
-
-            # Workaround for https://github.com/mwclient/mwclient/issues/65
-            # ----------------------------------------------------------------
-            # Since the filename in Content-Disposition is not interpreted,
-            # we can send some ascii-only dummy name rather than the real
-            # filename, which might contain non-ascii.
-            files = {'file': ('fake-filename', file)}
-
+        files = {'file': ('fake-filename', file)} if file is not None else None
         sleeper = self.sleepers.make()
         while True:
             data = self.raw_call('api', postdata, files)
@@ -1161,7 +1142,7 @@ class Site(object):
                                                    prefix=prefix,
                                                    prop=prop, namespace=namespace))
         if unique:
-            kwargs[pfx + 'unique'] = '1'
+            kwargs[f'{pfx}unique'] = '1'
         return listing.List.get_list(generator)(self, 'alllinks', 'al', limit=limit,
                                                 return_values='title', **kwargs)
 
@@ -1461,7 +1442,6 @@ class Site(object):
                 # In older versions of Semantic MediaWiki (at least until 2.3.0)
                 # a list was returned. In newer versions an object is returned
                 # with the page title as key.
-                answers = [answer for answer in answers.values()]
+                answers = list(answers.values())
 
-            for answer in answers:
-                yield answer
+            yield from answers

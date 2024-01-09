@@ -12,21 +12,17 @@ import mwclient
 if len(sys.argv) < 3:
     print(sys.argv[0], 'username', 'password', '[host=test.wikipedia.org]', '[path=/w/]')
     sys.exit()
-if len(sys.argv) > 3:
-    host = sys.argv[3]
-else:
-    host = 'test.wikipedia.org'
-if len(sys.argv) > 4:
-    path = sys.argv[4]
-else:
-    path = '/w/'
-
+host = sys.argv[3] if len(sys.argv) > 3 else 'test.wikipedia.org'
+path = sys.argv[4] if len(sys.argv) > 4 else '/w/'
 site = mwclient.Site(host, path)
 site.login(sys.argv[1], sys.argv[2])
 
-name = ''.join(random.choice('abcdefghijklmnopqrstuvwxyz') for i in xrange(8)) + '.png'
+name = (
+    ''.join(random.choice('abcdefghijklmnopqrstuvwxyz') for _ in xrange(8))
+    + '.png'
+)
 
-print('Using http://%s%sindex.php?title=File:' % (host, path) + name)
+print(f'Using http://{host}{path}index.php?title=File:{name}')
 print('Regular upload test')
 
 res = site.upload(open('test-image.png', 'rb'), name, 'Regular upload test', ignore=True)

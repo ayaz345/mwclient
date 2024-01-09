@@ -53,7 +53,7 @@ class TestSleepers(unittest.TestCase):
 
     def test_max_retries(self):
         sleeper = self.sleepers.make()
-        for x in range(self.max_retries):
+        for _ in range(self.max_retries):
             sleeper.sleep()
         with pytest.raises(MaximumRetriesExceeded):
             sleeper.sleep()
